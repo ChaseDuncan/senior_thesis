@@ -5,7 +5,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.*;
 import java.util.*;
+import java.lang.*;
 import static java.nio.file.StandardOpenOption.*;
+import java.nio.charset.StandardCharsets;
 
 public class NerToBratTranslation
 {
@@ -65,21 +67,20 @@ public class NerToBratTranslation
                 annotation.id(annId);
                 annId++;
 
-                String label = StringUtils.remove(currStr, '[');
+                String label = StringUtils.substring(currStr, 1, currStr.length());
                 annotation.label = label;
 
                 splitIdx++;
                 
                 String nextStr = splitText[splitIdx];
-                String entity = "";
+                String entity = null;
                 do{
                     nextStr = splitText[splitIdx];
                     entity = StringUtils.join(new String[]{entity, nextStr}, " "); 
                     splitIdx++;
                 }while(nextStr.charAt(nextStr.length() - 1) != ']');
-                entity = StringUtils.remove(entity, "]");
+                entity = StringUtils.substring(entity, 1, entity.length() - 1);
                 annotation.entity = entity;
-                
                 if(!firstEntity)
                     annotation.start = outText.length() + 1;
 
@@ -89,7 +90,7 @@ public class NerToBratTranslation
                 //on how the document ends and if the named entity is the last
                 //thing in the document. unless it comes up i'm ignoring it for
                 //now.
-                annotation.end = outText.length() + 1;
+                annotation.end = outText.length();
                 annotations.add(annotation);
             }else{
                 if(punctuations.contains(currStr))
@@ -98,6 +99,7 @@ public class NerToBratTranslation
                 }else{
                     outText = StringUtils.join(new String[] {outText, currStr}, " ");
                 }
+
                 splitIdx++;
             }
         }   
@@ -113,11 +115,10 @@ public class NerToBratTranslation
     public void writeToFile()
     {
         try{ 
-            Files.write(pathToAnn, annotations.get(0).annotationAsBytes(), CREATE);
+            Files.write(pathToAnn, annotations.get(0).annotationAsArrayList(), StandardCharsets.UTF_8, CREATE);
 
             for(int i = 1; i < annotations.size(); i++)
-                Files.write(pathToAnn, annotations.get(i).annotationAsBytes(), APPEND);
-
+                Files.write(pathToAnn, annotations.get(i).annotationAsArrayList(), StandardCharsets.UTF_8, APPEND);
             Files.write(pathToTxt, outText.getBytes(), CREATE);
         }catch(IOException e){
             e.printStackTrace(); 
