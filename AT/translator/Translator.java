@@ -8,14 +8,8 @@ public class Translator{
 		String filename = args[2];
 		String translationType = args[3];
 
-		System.out.println(inPath);
-		System.out.println(outPath);
-		System.out.println(filename);
-		System.out.println(translationType);
-
 		if(translationType.equals("NerToBrat"))
 		{
-			System.out.println("We made it!");
 			NerToBratTranslation trans = new NerToBratTranslation(inPath, outPath, filename);
 			trans.writeToFile();
 		}
